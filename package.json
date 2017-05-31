@@ -1,0 +1,19 @@
+{
+  "name": "tinkoff-chart",
+  "version": "0.0.1",
+  "description": "Yet another chart for Tinkoff Bank as a test task",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fadilmamedov/tinkoff-chart.git"
+  },
+  "author": "Fadil Mamedov <fadil.mamedov@mail.ru>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fadilmamedov/tinkoff-chart/issues"
+  },
+  "homepage": "https://github.com/fadilmamedov/tinkoff-chart#readme"
+}
