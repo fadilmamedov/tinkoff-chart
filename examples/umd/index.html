@@ -8,16 +8,99 @@
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
         <script src="https://unpkg.com/react@15/dist/react.js"></script>
         <script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
+
+        <style>
+            .tinkoff-chart svg {
+                cursor: pointer;
+            }
+
+            .tinkoff-chart-label {
+                fill: #b9b7b7;
+                font-family: "Helvetica Neue", Tahoma;
+                font-size: 16px;
+            }
+
+            .tinkoff-chart-year {
+                font-size: 22px;
+            }
+
+            .tinkoff-chart-line {
+                stroke: #e8e6e6;
+                stroke-width: 1;
+            }
+
+            .tinkoff-chart-curve {
+                fill: none;
+                stroke: #74a3c4;
+                stroke-width: 2;
+            }
+
+            .tinkoff-chart-focus-line {
+                fill: none;
+                stroke: #ccc;
+                stroke-width: 1;
+            }
+
+            .tinkoff-chart-focus-dot {
+                fill: #74a3c4;
+                stroke: white;
+                stroke-width: 2;
+            }
+
+            .logo {
+                opacity: 0.5;
+            }
+        </style>
     </head>
     <body>
         <div id="application"></div>
 
-        <script src="./tinkoff-chart.umd.js"></script>
+        <script src="../../dist/tinkoff-chart.umd.js"></script>
 
         <script type="text/babel">
+            let stock = {
+                year: 2016,
+                prices: []
+            };
+
+            const yearEnd = new Date(stock.year, 11, 31),
+                  yearStart = new Date(stock.year, 0, 1);
+
+            let price = 20,
+                chancesForGrowth = 0.5,
+                currentDate = new Date(yearStart),
+                id = 0;
+
+            while (currentDate <= yearEnd) {
+                currentDate.setDate(currentDate.getDate() + Math.floor(Math.random() * 3) + 1);
+
+                let priceDelta = Math.random() * 3,
+                    currentChance = Math.random();
+
+                if (currentChance < chancesForGrowth) {
+                    price += priceDelta;
+                } else {
+                    price -= priceDelta;
+                }
+
+                if (price > 100) {
+                    chancesForGrowth -= 0.05;
+                    price = 100;
+                } else if (price < 0) {
+                    chancesForGrowth += 0.05;
+                    price = 0;
+                }
+
+                stock.prices.push({
+                    id: id++,
+                    date: new Date(currentDate),
+                    value: price
+                });
+            }
+
             ReactDOM.render(
                 <div>
-                    <TinkoffChart />
+                    <TinkoffChart width={1400} height={600} stock={stock} />
                 </div>,
                 document.getElementById("application")
             );

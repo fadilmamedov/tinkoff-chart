@@ -11,7 +11,7 @@
     "build:common:prod": "BUILD_ENV=common NODE_ENV=production webpack",
     "build:common": "npm run build:common:dev && npm run build:common:prod",
     "build": "npm run build:umd && npm run build:common && gulp examples",
-    "example:common": "webpack --config webpack.example.config.js"
+    "example:common": "npm run build && webpack --config webpack.example.config.js"
   },
   "repository": {
     "type": "git",
@@ -26,12 +26,10 @@
   "devDependencies": {
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
-    "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "gulp": "^3.9.1",
-    "webpack": "^2.6.1",
-    "webpack-dev-server": "^2.4.5"
+    "webpack": "^2.6.1"
   },
   "dependencies": {
     "react": "^15.5.4",
