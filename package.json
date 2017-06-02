@@ -1,6 +1,6 @@
 {
   "name": "tinkoff-chart",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Yet another chart for Tinkoff Bank as a test task",
   "main": "dist/tinkoff-chart.common.js",
   "scripts": {

@@ -156,8 +156,8 @@ class TinkoffChart extends React.Component {
         if (previousPrice !== null) {
             deltaElement = (
                 <div className="delta" style={{ color: priceDelta > 0 ? "#239e52" : "#ab3339" }}>
-                    <img src={priceDelta > 0 ? iconUp : iconDown} />
-                    <span>{Math.abs(priceDelta).toFixed(2).toString().replace(".", ",")}</span>
+                    <img className="delta-icon" src={priceDelta > 0 ? iconUp : iconDown} />
+                    <span className="delta-text">{Math.abs(priceDelta).toFixed(2).toString().replace(".", ",")}</span>
                 </div>
             );
         }

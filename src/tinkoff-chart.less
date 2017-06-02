@@ -1,8 +1,4 @@
 @font: "Helvetica Neue", Tahoma;
-
-@label-color: #b9b7b7;
-@grid-line-color: #e8e6e6;
-@focus-line-color: #ccc;
 @chart-curve-color: #74a3c4;
 
 
@@ -16,7 +12,7 @@
   }
 
   .tinkoff-chart-label {
-    fill: @label-color;
+    fill: #b9b7b7;
     font-family: @font;
     font-size: 16px;
   }
@@ -26,7 +22,7 @@
   }
 
   .tinkoff-chart-grid-line {
-    stroke: @grid-line-color;
+    stroke: #e8e6e6;
     stroke-width: 1;
   }
 
@@ -38,7 +34,7 @@
 
   .tinkoff-chart-focus-line {
     fill: none;
-    stroke: @focus-line-color;
+    stroke: #ccc;
     stroke-width: 1;
   }
 
@@ -78,11 +74,11 @@
       }
 
       .delta {
-        span {
+        .delta-text {
           vertical-align: middle;
         }
 
-        img {
+        .delta-icon {
           width: 32px;
           height: 32px;
           vertical-align: middle;
