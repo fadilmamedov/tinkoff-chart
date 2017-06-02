@@ -6,4 +6,8 @@ gulp.task("examples", () => {
 
     gulp.src("dist/tinkoff-chart.umd.js")
         .pipe(gulp.dest("examples/umd"));
+
+    gulp.src("dist/images/**/*.*", { base: "dist/images" })
+        .pipe(gulp.dest("examples/umd/images"))
+        .pipe(gulp.dest("examples/common/images"));
 });

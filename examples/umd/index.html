@@ -8,95 +8,11 @@
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
         <script src="https://unpkg.com/react@15/dist/react.js"></script>
         <script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
-
-        <style>
-            .tinkoff-chart svg {
-                cursor: pointer;
-            }
-
-            .tinkoff-chart-label {
-                fill: #b9b7b7;
-                font-family: "Helvetica Neue", Tahoma;
-                font-size: 16px;
-            }
-
-            .tinkoff-chart-year {
-                font-size: 22px;
-            }
-
-            .tinkoff-chart-grid-line {
-                stroke: #e8e6e6;
-                stroke-width: 1;
-            }
-
-            .tinkoff-chart-curve {
-                fill: none;
-                stroke: #74a3c4;
-                stroke-width: 2;
-            }
-
-            .tinkoff-chart-focus-line {
-                fill: none;
-                stroke: #ccc;
-                stroke-width: 1;
-            }
-
-            .tinkoff-chart-focus-dot {
-                fill: #74a3c4;
-                stroke: white;
-                stroke-width: 2;
-            }
-
-            .tinkoff-logo {
-                opacity: 0.5;
-            }
-
-            .tinkoff-chart-details {
-                position: absolute;
-                padding: 15px;
-                border: 1px solid #eee;
-                border-radius: 5px;
-                background-color: white;
-                box-shadow: 2px 2px 8px 0px #ccc;
-                font-family: "Helvetica Neue", Tahoma;
-                box-sizing: border-box;
-                transition: all 0.1s;
-            }
-
-            .tinkoff-chart-details .date {
-                color: #aaa;
-            }
-
-            .tinkoff-chart-details .info {
-                display: table;
-                width: 100%;
-                padding-top: 5px;
-            }
-
-            .tinkoff-chart-details .info div {
-                display: table-cell;
-                vertical-align: middle;
-            }
-
-            .tinkoff-chart-details .info .price {
-                color: #3e4757;
-            }
-
-            .tinkoff-chart-details .info .delta span {
-                vertical-align: middle;
-            }
-
-            .tinkoff-chart-details .info .delta img {
-                width: 32px;
-                height: 32px;
-                vertical-align: middle;
-            }
-        </style>
     </head>
     <body>
         <div id="application"></div>
 
-        <script src="../../dist/tinkoff-chart.umd.js"></script>
+        <script src="tinkoff-chart.umd.js"></script>
 
         <script type="text/babel">
             let stock = {

@@ -1,4 +1,9 @@
 import React from "react";
+import "./tinkoff-chart.less";
+
+const logo = require("./images/tinkoff-logo.png"),
+      iconUp = require("./images/icon-up.svg"),
+      iconDown = require("./images/icon-down.svg");
 
 
 const CHART_ANIMATION_DURATION = 1000;
@@ -151,7 +156,7 @@ class TinkoffChart extends React.Component {
         if (previousPrice !== null) {
             deltaElement = (
                 <div className="delta" style={{ color: priceDelta > 0 ? "#239e52" : "#ab3339" }}>
-                    <img src={priceDelta > 0 ? "icon-up.svg" : "icon-down.svg"} />
+                    <img src={priceDelta > 0 ? iconUp : iconDown} />
                     <span>{Math.abs(priceDelta).toFixed(2).toString().replace(".", ",")}</span>
                 </div>
             );
@@ -224,7 +229,7 @@ class TinkoffChart extends React.Component {
 
     getLogo() {
         return (
-            <image xlinkHref="tinkoff-logo.png" x="100" y="50" width="200px" className="tinkoff-logo"></image>
+            <image xlinkHref={logo} x="100" y="50" width="200px" className="tinkoff-logo"></image>
         );
     }
 

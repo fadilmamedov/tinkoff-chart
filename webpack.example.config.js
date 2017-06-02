@@ -17,6 +17,20 @@ module.exports = {
                 use: "babel-loader",
                 test: /\.js$/,
                 exclude: /node_modules/
+            },
+            {
+                test: /\.(jpe?g|png|gif|svg)$/,
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 20000,
+                            name: "[name].[ext]",
+                            outputPath: "images/"
+                        }
+                    },
+                    "image-webpack-loader"
+                ]
             }
         ]
     }
