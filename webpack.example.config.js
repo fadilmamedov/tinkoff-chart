@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 
 module.exports = {
@@ -8,7 +9,7 @@ module.exports = {
 
     output: {
         path: path.resolve("examples/common/build"),
-        filename: "[name].js",
+        filename: "[name].min.js",
     },
 
     module: {
@@ -33,5 +34,9 @@ module.exports = {
                 ]
             }
         ]
-    }
+    },
+
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({ minimize: true })
+    ]
 };
