@@ -1,0 +1,93 @@
+@font: "Helvetica Neue", Tahoma;
+
+@label-color: #b9b7b7;
+@grid-line-color: #e8e6e6;
+@focus-line-color: #ccc;
+@chart-curve-color: #74a3c4;
+
+
+.tinkoff-chart {
+  svg {
+    cursor: pointer;
+  }
+
+  .tinkoff-logo {
+    opacity: 0.5;
+  }
+
+  .tinkoff-chart-label {
+    fill: @label-color;
+    font-family: @font;
+    font-size: 16px;
+  }
+
+  .tinkoff-chart-year {
+    font-size: 22px;
+  }
+
+  .tinkoff-chart-grid-line {
+    stroke: @grid-line-color;
+    stroke-width: 1;
+  }
+
+  .tinkoff-chart-curve {
+    fill: none;
+    stroke: @chart-curve-color;
+    stroke-width: 2;
+  }
+
+  .tinkoff-chart-focus-line {
+    fill: none;
+    stroke: @focus-line-color;
+    stroke-width: 1;
+  }
+
+  .tinkoff-chart-focus-dot {
+    fill: @chart-curve-color;
+    stroke: white;
+    stroke-width: 2;
+  }
+
+  .tinkoff-chart-details {
+    position: absolute;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    background-color: white;
+    font-family: @font;
+    box-shadow: 2px 2px 8px 0px #ccc;
+    box-sizing: border-box;
+    transition: all 0.1s;
+
+    .date {
+      color: #aaa;
+    }
+
+    .info {
+      display: table;
+      width: 100%;
+      padding-top: 5px;
+
+      div {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+      .price {
+        color: #3e4757;
+      }
+
+      .delta {
+        span {
+          vertical-align: middle;
+        }
+
+        img {
+          width: 32px;
+          height: 32px;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+}

@@ -24,15 +24,33 @@ let options = {
                 use: "babel-loader",
                 test: /\.jsx$/,
                 exclude: /node_modules/
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    { loader: "style-loader"},
+                    { loader: "css-loader"  },
+                    { loader: "less-loader" }
+                ]
+            },
+            {
+                test: /\.(jpe?g|png|gif|svg)$/,
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 20000,
+                            name: "[name].[ext]",
+                            outputPath: "images/"
+                        }
+                    },
+                    "image-webpack-loader"
+                ]
             }
         ]
     },
 
-    plugins: [
-        new webpack.DefinePlugin({
-            umd: process.env.BUILD_ENV
-        })
-    ]
+    plugins: []
 };
 
 switch (process.env.BUILD_ENV) {
