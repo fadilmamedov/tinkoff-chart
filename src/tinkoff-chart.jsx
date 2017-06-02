@@ -1,198 +1,258 @@
 import React from "react";
 
 
-class TinkoffChart extends React.Component {
-    constructor(props) {
-        super(props);
+const CHART_ANIMATION_DURATION = 1000;
 
-        this.state = {
-            focusedValue: null,
-            points: []
-        };
 
-        this.view = {
-            padding: 20,
-            yScaleWidth: 30,
-            xScaleHeight: 60
-        };
-
-        this.scale = {
-            linear: () => {
-                return {
-                    domain: this.domain,
-                    range: this.range
-                }
-            }
-        };
+class LinearScale {
+    static create() {
+        return new LinearScale();
     }
 
     domain(start, end) {
-        this._domain = {
-            start: start,
-            end: end
-        };
+        this._domain = {start, end};
 
         return this;
     }
 
     range(start, end) {
-        this._range = {
-            start: start,
-            end: end
-        };
+        this._range = {start, end};
 
         return (value) => {
             let result = (this._range.end - this._range.start) / (this._domain.end - this._domain.start) * value;
 
             return this._range.start + result;
+        }
+    }
+}
+
+
+class TinkoffChart extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            focus: null,
+            points: []
+        };
+
+        this.view = {
+            padding: 20,
+            height: props.height,
+            width:  props.width,
+
+            yAxisWidth: 30,
+            xAxisHeight: 60
         };
     }
 
-    getYScale() {
-        const yScale = this.scale.linear().domain(0, 100).range(this.props.height - this.view.xScaleHeight - this.view.padding, this.view.padding + 10);
+    getYAxisElement() {
+        const axis = this.props.yAxis;
 
-        let yScaleElements = [];
-        for (let labelValue = 0; labelValue <= 100; labelValue += 20) {
-            let y = yScale(labelValue);
+        const bounds = {
+            axis: {
+                top:    this.view.padding + 10,
+                bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+                right:  this.view.padding + this.view.yAxisWidth
+            },
 
-            yScaleElements.push(
-                <g key={labelValue}>
-                    <text x={this.view.padding + this.view.yScaleWidth} y={y} className="tinkoff-chart-label" textAnchor="end">
-                        {labelValue}
+            grid: {
+                left:  this.view.padding + this.view.yAxisWidth + 10,
+                right: this.view.width - this.view.padding
+            }
+        };
+
+        const scale = LinearScale.create().domain(axis.min, axis.max).range(bounds.axis.bottom, bounds.axis.top);
+
+        let elements = [];
+        for (let label = axis.min; label <= axis.max; label += axis.step) {
+            let y = scale(label);
+
+            elements.push(
+                <g key={label}>
+                    <text x={bounds.axis.right} y={y} className="tinkoff-chart-label" textAnchor="end">
+                        {label}
                     </text>
 
-                    <line x1={this.view.padding + this.view.yScaleWidth + 10} x2={this.props.width - this.view.padding}
-                          y1={y} y2={y} className="tinkoff-chart-line">
-                    </line>
+                    <line x1={bounds.grid.left} x2={bounds.grid.right} y1={y} y2={y} className="tinkoff-chart-grid-line"></line>
                 </g>
             );
         }
 
-        return yScaleElements;
+        return elements;
     }
 
-    getXScale() {
-        let xScale = this.scale.linear().domain(0, 12).range(this.view.padding + this.view.yScaleWidth + 40, this.props.width - this.view.padding);
-        let months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    getXAxisElement() {
+        const months = this.props.xAxis.values;
 
-        let xScaleElements = [];
-        for (let monthIndex = 0; monthIndex < months.length; monthIndex++) {
-            let x = xScale(monthIndex);
+        const bounds = {
+            left:   this.view.padding + this.view.yAxisWidth + 40,
+            right:  this.view.width - this.view.padding,
+            bottom: this.view.height - this.view.padding - this.view.xAxisHeight / 2
+        };
 
-            xScaleElements.push(
-                <text key={monthIndex} x={x} y={this.props.height - this.view.padding - this.view.xScaleHeight + 30} className="tinkoff-chart-label">
-                    {months[monthIndex]}
+        let scale = LinearScale.create().domain(0, months.length).range(bounds.left, bounds.right);
+
+        let elements = [];
+        months.forEach((month, index) => {
+            let x = scale(index);
+
+            elements.push(
+                <text key={month} x={x} y={bounds.bottom} className="tinkoff-chart-label">
+                    {month}
                 </text>
+            );
+        });
+
+        return elements;
+    }
+
+    getFocusElement() {
+        if (!this.state.focus) {
+            return;
+        }
+
+        const bounds = {
+            left:   this.state.focus.x,
+            top:    this.state.focus.y,
+            bottom: this.view.height - this.view.padding - this.view.xAxisHeight,
+        };
+
+        return (
+            <g>
+                <line x1={bounds.left} x2={bounds.left} y1={bounds.top} y2={bounds.bottom} className="tinkoff-chart-focus-line" strokeDasharray="6,8"></line>
+                <circle cx={bounds.left} cy={bounds.top} r="6" className="tinkoff-chart-focus-dot"></circle>
+            </g>
+        );
+    }
+
+    getFocusDetailsElement() {
+        if (!this.state.focus) {
+            return;
+        }
+
+        let currentPrice = this.state.focus.price.value,
+            currentDate  = this.state.focus.price.date,
+            previousPrice = null,
+            priceDelta    = null;
+
+        if (this.state.focus.id > 0) {
+            previousPrice = this.priceLabels[this.state.focus.id - 1].price.value;
+            priceDelta = currentPrice - previousPrice;
+        }
+
+        const priceElement = (
+            <div className="price">
+                ${currentPrice.toFixed(2).toString().replace(".", ",")}
+            </div>
+        );
+
+        let deltaElement;
+        if (previousPrice !== null) {
+            deltaElement = (
+                <div className="delta" style={{ color: priceDelta > 0 ? "#239e52" : "#ab3339" }}>
+                    <img src={priceDelta > 0 ? "icon-up.svg" : "icon-down.svg"} />
+                    <span>{Math.abs(priceDelta).toFixed(2).toString().replace(".", ",")}</span>
+                </div>
             );
         }
 
-        return xScaleElements;
+        return (
+            <div className="tinkoff-chart-details" style={this.getFocusDetailsElementStyle()}>
+                <div className="date">
+                    {`${currentDate.getDate()} ${this.formatMonth(currentDate)} ${currentDate.getFullYear()}`}
+                </div>
+                <div className="info">
+                    {priceElement}
+                    {priceDelta !== 0 ? deltaElement : null}
+                </div>
+            </div>
+        );
     }
 
-    getChart() {
-        const xScale = this.scale.linear().domain(0, this.getDaysInYear(this.props.stock.year)).range(this.view.padding + this.view.yScaleWidth + 40, this.props.width - this.view.padding),
-              yScale = this.scale.linear().domain(0, 100).range(this.props.height - this.view.xScaleHeight - this.view.padding, this.view.padding + 10);
+    formatMonth(date) {
+        const months = ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"];
 
-        this.priceLabelCoords = this.props.stock.prices.map((price) => {
-            return {
-                id: price.id,
-                value: price,
-                x: xScale(this.getNumberOfDay(price.date)),
-                y: yScale(price.value)
+        return months[date.getMonth()];
+    }
+
+    getFocusDetailsElementStyle() {
+        let chartBounds = this.refs.svg.getBoundingClientRect(),
+            elementBounds = {
+                x: this.state.focus.x - chartBounds.left + window.scrollX,
+                y: this.state.focus.y - chartBounds.top + window.scrollY,
+                width: 180,
+                height: 80
             };
-        });
 
-        const points = this.props.stock.prices.map((price) => {
-            return `${xScale(this.getNumberOfDay(price.date))},${yScale(price.value)}`
-        });
+        const style = {
+            left: elementBounds.x + 20,
+            top: elementBounds.y - 90,
+            width: 180,
+            height: 80
+        };
 
-        debugger;
-        let i = 0;
-        setTimeout(() => {
-            debugger;
-            // debugger;
-            // this.setState((prevState) => {
-            //     points: prevState.points.push(points[i++]);
-            // })
-            this.setState({
-                points: points
-            });
-        }, 1000);
+        if (style.left + style.width > this.view.width) {
+            style.left -= style.width + 20
+        }
 
-        // return (
-        //     <polyline points={points.join(" ")} className="tinkoff-chart-curve" strokeLinejoin="round"></polyline>
-        // );
+        if (style.top < 0) {
+            style.top += style.height + 40;
+        }
+
+        return style;
     }
 
-    getChartNewTest() {
+    getChartElement() {
         return (
             <polyline points={this.state.points.join(" ")} className="tinkoff-chart-curve" strokeLinejoin="round"></polyline>
         );
     }
 
-    getDaysInYear(year) {
-        return this.isLeapYear(year) ? 366 : 365;
-    }
-
-    isLeapYear(year) {
-        return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
-    }
-
-    getNumberOfDay(date) {
-        const yearStart = new Date(this.props.stock.year, 0, 1),
-              dateDiff = date - yearStart;
-
-        const oneDay = 1000 * 60 * 60 * 24;
-
-        return Math.floor(dateDiff / oneDay);
-    }
-
     getYearLabel() {
+        const bounds = {
+            left: this.view.padding + this.view.yAxisWidth + 40,
+            top:  this.view.height - this.view.padding + 10
+        };
+
         return (
-            <text x={this.view.padding + this.view.yScaleWidth + 40} y={this.props.height - this.view.padding + 10} className="tinkoff-chart-label tinkoff-chart-year">
+            <text x={bounds.left} y={bounds.top} className="tinkoff-chart-label tinkoff-chart-year">
                 {this.props.stock.year}
             </text>
         );
     }
 
-    getFocusElement() {
-        if (!this.state.focusedValue) {
-            return;
-        }
-
-        let x = this.state.focusedValue.x,
-            y = this.state.focusedValue.y;
-
+    getLogo() {
         return (
-            <g>
-                <line x1={x} y1={y} x2={x} y2={this.props.height - this.view.padding - this.view.xScaleHeight} className="tinkoff-chart-focus-line" strokeDasharray="6,8"></line>
-                <circle cx={x} cy={y} r="6" className="tinkoff-chart-focus-dot"></circle>
-            </g>
+            <image xlinkHref="tinkoff-logo.png" x="100" y="50" width="200px" className="tinkoff-logo"></image>
         );
     }
 
     handleMouseMove(event) {
-        let chartBounds = this.refs.fadilSvg.getBoundingClientRect(),
-            cursorXPosition = event.pageX - chartBounds.left + window.scrollX;
+        if (!this.isChartBuilt) {
+            return;
+        }
 
-        let deltas = this.priceLabelCoords.map((priceLabel) => {
+        const chartBounds = this.refs.svg.getBoundingClientRect(),
+              cursorXPosition = event.pageX - chartBounds.left + window.scrollX;
+
+        const deltas = this.priceLabels.map((priceLabel) => {
             return Math.abs(cursorXPosition - priceLabel.x);
         });
 
-        let f = Math.min.apply(null, deltas);
-        let index = deltas.indexOf(f);
+        const minDelta = Math.min.apply(null, deltas);
 
         this.setState({
-            focusedValue: this.priceLabelCoords[index]
+            focus: this.priceLabels[deltas.indexOf(minDelta)]
         });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (!this.state.focusedValue) {
+        if (!this.state.focus || !nextState.focus) {
             return true;
         }
 
-        if (this.state.focusedValue.id === nextState.focusedValue.id) {
+        if (this.state.focus.id === nextState.focus.id) {
             return false;
         }
 
@@ -200,75 +260,63 @@ class TinkoffChart extends React.Component {
     }
 
     componentDidMount() {
-        const xScale = this.scale.linear().domain(0, this.getDaysInYear(this.props.stock.year)).range(this.view.padding + this.view.yScaleWidth + 40, this.props.width - this.view.padding),
-            yScale = this.scale.linear().domain(0, 100).range(this.props.height - this.view.xScaleHeight - this.view.padding, this.view.padding + 10);
+        const yearStart = new Date(this.props.stock.year, 0, 1),
+              yearEnd   = new Date(this.props.stock.year, 11, 31);
 
-        this.priceLabelCoords = this.props.stock.prices.map((price) => {
+        const bounds = {
+            left:   this.view.padding + this.view.yAxisWidth + 40,
+            right:  this.view.width - this.view.padding,
+            bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+            top:    this.view.padding + 10
+        };
+
+        const xScale = LinearScale.create().domain(yearStart, yearEnd).range(bounds.left, bounds.right),
+              yScale = LinearScale.create().domain(this.props.yAxis.min, this.props.yAxis.max).range(bounds.bottom, bounds.top);
+
+        this.priceLabels = this.props.stock.prices.map((price, index) => {
             return {
-                id: price.id,
-                value: price,
-                x: xScale(this.getNumberOfDay(price.date)),
+                price: price,
+                id: index,
+                x: xScale(price.date - yearStart),
                 y: yScale(price.value)
             };
         });
 
-        const points = this.props.stock.prices.map((price) => {
-            return `${xScale(this.getNumberOfDay(price.date))},${yScale(price.value)}`
-        });
+        const points = this.priceLabels.map(({x, y}) => `${x},${y}`);
 
-        let i = 0;
-        setInterval(() => {
+        let animationFrameIndex = 0;
+        this.animationTimer = setInterval(() => {
+            if (points.length === animationFrameIndex) {
+                this.isChartBuilt = true;
+                clearInterval(this.animationTimer);
+            }
+
             this.setState((prevState) => {
-                points: prevState.points.push(points[i++]);
+                points: prevState.points.push(points[animationFrameIndex++]);
             })
-        }, 1000 / points.length);
+        }, CHART_ANIMATION_DURATION / points.length);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.animationTimer);
     }
 
     render() {
-        console.log("render");
-        const yScale = this.getYScale(),
-              xScale = this.getXScale(),
-              chart = this.getChartNewTest(),
-              focusElement = this.getFocusElement(),
-              yearLabel = this.getYearLabel();
-
         return (
             <div className="tinkoff-chart">
-                <svg width={this.props.width} height={this.props.height} onMouseMove={this.handleMouseMove.bind(this)} ref="fadilSvg">
-                    {yScale}
-                    {xScale}
-                    {yearLabel}
-
-                    {chart}
-                    {focusElement}
-
-                    <image xlinkHref="logo.png" x="100" y="50" width="200px" className="logo"></image>
+                <svg width={this.view.width} height={this.view.height} ref="svg" onMouseMove={this.handleMouseMove.bind(this)}>
+                    {this.getYAxisElement()}
+                    {this.getXAxisElement()}
+                    {this.getChartElement()}
+                    {this.getFocusElement()}
+                    {this.getYearLabel()}
+                    {this.getLogo()}
                 </svg>
+
+                {this.getFocusDetailsElement()}
             </div>
         );
     }
-
-//     debounce: function(func, wait, immediate) {
-//     var timeout;
-//
-//     return function() {
-//         var context = this,
-//             args = arguments;
-//
-//         var later = function() {
-//             timeout = null;
-//
-//             if (!immediate) func.apply(context, args);
-//         };
-//
-//         var callNow = immediate && !timeout;
-//
-//         clearTimeout(timeout);
-//         timeout = setTimeout(later, wait);
-//
-//         if (callNow) func.apply(context, args);
-//     };
-// },
 }
 
 module.exports = TinkoffChart;
