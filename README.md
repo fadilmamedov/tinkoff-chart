@@ -12,6 +12,9 @@ Yet another chart for Tinkoff Bank as a test task
 
 ![alt text](https://media.giphy.com/media/3og0ILjqGSCUidPS92/giphy.gif)
 
+## Demo
+[Checkout the demo](https://fadilmamedov.github.io/tinkoff-chart/)
+
 ## Installation
 ```sh
 $ npm install tinkoff-chart --save
