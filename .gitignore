@@ -1,2 +1,7 @@
 .idea
 node_modules/
+examples/common/build
+examples/common/images
+examples/common/src/tinkoff-chart.common.js
+examples/umd/images
+examples/umd/tinkoff-chart.umd.js
