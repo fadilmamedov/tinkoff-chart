@@ -1,9 +1,3 @@
-<p align="right">
-  <a href="https://www.tinkoff.ru/">
-    <img width="300" src="https://static.tinkoff.ru/dist/images/content-images/brand/tinkoffbank_general_logo/TinkoffBank_general_logo_3.png">
-  </a>
-</p>
-
 [![NPM](https://nodei.co/npm/tinkoff-chart.png)][npm-url]
 
 
