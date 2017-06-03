@@ -11,7 +11,7 @@
     "build:common:prod": "BUILD_ENV=common NODE_ENV=production webpack",
     "build:common": "npm run build:common:dev && npm run build:common:prod",
     "build": "npm run build:umd && npm run build:common",
-    "example:common": "npm run build:common && gulp examples && webpack --config webpack.example.config.js",
+    "example:common": "npm run build:common && gulp examples && NODE_ENV=production webpack --config webpack.example.config.js",
     "example:umd": "npm run build:umd && gulp examples",
     "example": "npm run example:common && npm run example:umd"
   },
