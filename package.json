@@ -1,6 +1,6 @@
 {
   "name": "tinkoff-chart",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Yet another chart for Tinkoff Bank as a test task",
   "main": "dist/tinkoff-chart.common.js",
   "scripts": {
@@ -38,10 +38,10 @@
     "less-loader": "^4.0.4",
     "style-loader": "^0.18.1",
     "url-loader": "^0.5.8",
-    "webpack": "^2.6.1"
+    "webpack": "^2.6.1",
+    "react-dom": "^15.5.4"
   },
   "dependencies": {
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react": "^15.5.4"
   }
 }
