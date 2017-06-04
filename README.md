@@ -4,7 +4,7 @@
 ## Tinkoff Chart
 Yet another chart for Tinkoff Bank as a test task
 
-![alt text](https://media.giphy.com/media/3og0ILjqGSCUidPS92/giphy.gif)
+![alt text](https://media.giphy.com/media/3oKIP8jiNKmpYR9GLK/giphy.gif)
 
 ## Demo
 [Checkout the demo](https://fadilmamedov.github.io/tinkoff-chart/)
