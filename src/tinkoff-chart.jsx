@@ -6,7 +6,8 @@ const logo = require("./images/tinkoff-logo.png"),
       iconDown = require("./images/icon-down.svg");
 
 
-const CHART_ANIMATION_DURATION = 1000;
+const CHART_ANIMATION_DURATION = 1000,
+      MOVING_AVERAGE_INTERVAL = 5;
 
 
 class LinearScale {
@@ -209,9 +210,41 @@ class TinkoffChart extends React.Component {
     }
 
     getChartElement() {
+        const points = this.state.points.map(({x, y}) => `${x},${y}`);
+
         return (
-            <polyline points={this.state.points.join(" ")} className="tinkoff-chart-curve" strokeLinejoin="round"></polyline>
+            <polyline points={points.join(" ")} className="tinkoff-chart-curve" strokeLinejoin="round"></polyline>
         );
+    }
+
+    getMovingAverageElement() {
+        const delta = Math.floor(MOVING_AVERAGE_INTERVAL / 2);
+
+        if (this.state.points.length < MOVING_AVERAGE_INTERVAL) {
+            return;
+        }
+
+        let result = [], x, y;
+        for (let i = delta; i < this.state.points.length - delta; i++) {
+            x = this.state.points[i].x;
+            y = this.getMovingAverageIntervalSum(i, delta) / MOVING_AVERAGE_INTERVAL;
+
+            result.push(`${x},${y + 30}`);
+        }
+
+        return (
+            <polyline points={result.join(" ")} className="tinkoff-chart-curve-ma" strokeLinejoin="round" strokeDasharray="6,8"></polyline>
+        );
+    }
+
+    getMovingAverageIntervalSum(index, delta) {
+        let result = 0;
+
+        for (let i = index - delta; i <= index + delta; i++) {
+            result += this.state.points[i].y;
+        }
+
+        return result;
     }
 
     getYearLabel() {
@@ -287,18 +320,21 @@ class TinkoffChart extends React.Component {
             };
         });
 
-        const points = this.priceLabels.map(({x, y}) => `${x},${y}`);
+        const points = this.priceLabels.map(({x, y}) => {
+            return {x, y};
+        });
 
         let animationFrameIndex = 0;
         this.animationTimer = setInterval(() => {
             if (points.length === animationFrameIndex) {
                 this.isChartBuilt = true;
                 clearInterval(this.animationTimer);
+                return;
             }
 
             this.setState((prevState) => {
                 points: prevState.points.push(points[animationFrameIndex++]);
-            })
+            });
         }, CHART_ANIMATION_DURATION / points.length);
     }
 
@@ -313,6 +349,7 @@ class TinkoffChart extends React.Component {
                     {this.getYAxisElement()}
                     {this.getXAxisElement()}
                     {this.getChartElement()}
+                    {this.props.ma && this.getMovingAverageElement()}
                     {this.getFocusElement()}
                     {this.getYearLabel()}
                     {this.getLogo()}

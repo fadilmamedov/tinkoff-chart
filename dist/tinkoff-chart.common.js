@@ -149,7 +149,8 @@ var logo = __webpack_require__(3),
     iconUp = __webpack_require__(2),
     iconDown = __webpack_require__(1);
 
-var CHART_ANIMATION_DURATION = 1000;
+var CHART_ANIMATION_DURATION = 1000,
+    MOVING_AVERAGE_INTERVAL = 5;
 
 var LinearScale = function () {
     function LinearScale() {
@@ -386,7 +387,45 @@ var TinkoffChart = function (_React$Component) {
     }, {
         key: "getChartElement",
         value: function getChartElement() {
-            return _react2.default.createElement("polyline", { points: this.state.points.join(" "), className: "tinkoff-chart-curve", strokeLinejoin: "round" });
+            var points = this.state.points.map(function (_ref) {
+                var x = _ref.x,
+                    y = _ref.y;
+                return x + "," + y;
+            });
+
+            return _react2.default.createElement("polyline", { points: points.join(" "), className: "tinkoff-chart-curve", strokeLinejoin: "round" });
+        }
+    }, {
+        key: "getMovingAverageElement",
+        value: function getMovingAverageElement() {
+            var delta = Math.floor(MOVING_AVERAGE_INTERVAL / 2);
+
+            if (this.state.points.length < MOVING_AVERAGE_INTERVAL) {
+                return;
+            }
+
+            var result = [],
+                x = void 0,
+                y = void 0;
+            for (var i = delta; i < this.state.points.length - delta; i++) {
+                x = this.state.points[i].x;
+                y = this.getMovingAverageIntervalSum(i, delta) / MOVING_AVERAGE_INTERVAL;
+
+                result.push(x + "," + (y + 30));
+            }
+
+            return _react2.default.createElement("polyline", { points: result.join(" "), className: "tinkoff-chart-curve-ma", strokeLinejoin: "round", strokeDasharray: "6,8" });
+        }
+    }, {
+        key: "getMovingAverageIntervalSum",
+        value: function getMovingAverageIntervalSum(index, delta) {
+            var result = 0;
+
+            for (var i = index - delta; i <= index + delta; i++) {
+                result += this.state.points[i].y;
+            }
+
+            return result;
         }
     }, {
         key: "getYearLabel",
@@ -467,10 +506,11 @@ var TinkoffChart = function (_React$Component) {
                 };
             });
 
-            var points = this.priceLabels.map(function (_ref) {
-                var x = _ref.x,
-                    y = _ref.y;
-                return x + "," + y;
+            var points = this.priceLabels.map(function (_ref2) {
+                var x = _ref2.x,
+                    y = _ref2.y;
+
+                return { x: x, y: y };
             });
 
             var animationFrameIndex = 0;
@@ -478,6 +518,7 @@ var TinkoffChart = function (_React$Component) {
                 if (points.length === animationFrameIndex) {
                     _this3.isChartBuilt = true;
                     clearInterval(_this3.animationTimer);
+                    return;
                 }
 
                 _this3.setState(function (prevState) {
@@ -502,6 +543,7 @@ var TinkoffChart = function (_React$Component) {
                     this.getYAxisElement(),
                     this.getXAxisElement(),
                     this.getChartElement(),
+                    this.props.ma && this.getMovingAverageElement(),
                     this.getFocusElement(),
                     this.getYearLabel(),
                     this.getLogo()
@@ -525,7 +567,7 @@ exports = module.exports = __webpack_require__(7)(undefined);
 
 
 // module
-exports.push([module.i, ".tinkoff-chart svg {\n  cursor: pointer;\n}\n.tinkoff-chart .tinkoff-logo {\n  opacity: 0.5;\n}\n.tinkoff-chart .tinkoff-chart-label {\n  fill: #b9b7b7;\n  font-family: \"Helvetica Neue\", Tahoma;\n  font-size: 16px;\n}\n.tinkoff-chart .tinkoff-chart-year {\n  font-size: 22px;\n}\n.tinkoff-chart .tinkoff-chart-grid-line {\n  stroke: #e8e6e6;\n  stroke-width: 1;\n}\n.tinkoff-chart .tinkoff-chart-curve {\n  fill: none;\n  stroke: #74a3c4;\n  stroke-width: 2;\n}\n.tinkoff-chart .tinkoff-chart-focus-line {\n  fill: none;\n  stroke: #ccc;\n  stroke-width: 1;\n}\n.tinkoff-chart .tinkoff-chart-focus-dot {\n  fill: #74a3c4;\n  stroke: white;\n  stroke-width: 2;\n}\n.tinkoff-chart .tinkoff-chart-details {\n  position: absolute;\n  padding: 15px;\n  border: 1px solid #eee;\n  border-radius: 5px;\n  background-color: white;\n  font-family: \"Helvetica Neue\", Tahoma;\n  box-shadow: 2px 2px 8px 0px #ccc;\n  box-sizing: border-box;\n  transition: all 0.1s;\n}\n.tinkoff-chart .tinkoff-chart-details .date {\n  color: #aaa;\n}\n.tinkoff-chart .tinkoff-chart-details .info {\n  display: table;\n  width: 100%;\n  padding-top: 5px;\n}\n.tinkoff-chart .tinkoff-chart-details .info div {\n  display: table-cell;\n  vertical-align: middle;\n}\n.tinkoff-chart .tinkoff-chart-details .info .price {\n  color: #3e4757;\n}\n.tinkoff-chart .tinkoff-chart-details .info .delta .delta-text {\n  vertical-align: middle;\n}\n.tinkoff-chart .tinkoff-chart-details .info .delta .delta-icon {\n  width: 32px;\n  height: 32px;\n  vertical-align: middle;\n}\n", ""]);
+exports.push([module.i, ".tinkoff-chart svg {\n  cursor: pointer;\n}\n.tinkoff-chart .tinkoff-logo {\n  opacity: 0.5;\n}\n.tinkoff-chart .tinkoff-chart-label {\n  fill: #b9b7b7;\n  font-family: \"Helvetica Neue\", Tahoma;\n  font-size: 16px;\n}\n.tinkoff-chart .tinkoff-chart-year {\n  font-size: 22px;\n}\n.tinkoff-chart .tinkoff-chart-grid-line {\n  stroke: #e8e6e6;\n  stroke-width: 1;\n}\n.tinkoff-chart .tinkoff-chart-curve {\n  fill: none;\n  stroke: #74a3c4;\n  stroke-width: 2;\n}\n.tinkoff-chart .tinkoff-chart-curve-ma {\n  fill: none;\n  stroke: #c43729;\n  stroke-width: 1;\n}\n.tinkoff-chart .tinkoff-chart-focus-line {\n  fill: none;\n  stroke: #ccc;\n  stroke-width: 1;\n}\n.tinkoff-chart .tinkoff-chart-focus-dot {\n  fill: #74a3c4;\n  stroke: white;\n  stroke-width: 2;\n}\n.tinkoff-chart .tinkoff-chart-details {\n  position: absolute;\n  padding: 15px;\n  border: 1px solid #eee;\n  border-radius: 5px;\n  background-color: white;\n  font-family: \"Helvetica Neue\", Tahoma;\n  box-shadow: 2px 2px 8px 0px #ccc;\n  box-sizing: border-box;\n  transition: all 0.1s;\n}\n.tinkoff-chart .tinkoff-chart-details .date {\n  color: #aaa;\n}\n.tinkoff-chart .tinkoff-chart-details .info {\n  display: table;\n  width: 100%;\n  padding-top: 5px;\n}\n.tinkoff-chart .tinkoff-chart-details .info div {\n  display: table-cell;\n  vertical-align: middle;\n}\n.tinkoff-chart .tinkoff-chart-details .info .price {\n  color: #3e4757;\n}\n.tinkoff-chart .tinkoff-chart-details .info .delta .delta-text {\n  vertical-align: middle;\n}\n.tinkoff-chart .tinkoff-chart-details .info .delta .delta-icon {\n  width: 32px;\n  height: 32px;\n  vertical-align: middle;\n}\n", ""]);
 
 // exports
 

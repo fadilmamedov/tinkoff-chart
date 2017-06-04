@@ -54,7 +54,7 @@ const xAxis = {
 
 ReactDOM.render(
     <div>
-        <TinkoffChart width={1400} height={600} stock={stock} yAxis={yAxis} xAxis={xAxis}/>
+        <TinkoffChart width={1400} height={600} stock={stock} yAxis={yAxis} xAxis={xAxis} ma={true}/>
     </div>,
     document.getElementById("application")
 );
