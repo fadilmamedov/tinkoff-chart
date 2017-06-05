@@ -344,6 +344,7 @@ class TinkoffChart extends React.Component {
                 });
             }, CHART_ANIMATION_DURATION / points.length);
         } else {
+            this.isChartBuilt = true;
             this.setState({
                 points: points
             });
