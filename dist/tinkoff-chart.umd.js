@@ -550,7 +550,7 @@ var TinkoffChart = function (_React$Component) {
     }, {
         key: "componentWillReceiveProps",
         value: function componentWillReceiveProps(props) {
-            var fadil1 = {
+            var currentProps = {
                 values: this.props.values,
                 width: this.props.width,
                 height: this.props.height,
@@ -558,7 +558,7 @@ var TinkoffChart = function (_React$Component) {
                 yAxis: this.props.yAxis
             };
 
-            var fadil2 = {
+            var newProps = {
                 values: props.values,
                 width: props.width,
                 height: props.height,
@@ -566,7 +566,7 @@ var TinkoffChart = function (_React$Component) {
                 yAxis: props.yAxis
             };
 
-            if (JSON.stringify(fadil1) === JSON.stringify(fadil2)) {
+            if (JSON.stringify(currentProps) === JSON.stringify(newProps)) {
                 return;
             }
 

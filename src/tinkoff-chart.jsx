@@ -352,7 +352,7 @@ class TinkoffChart extends React.Component {
     }
 
     componentWillReceiveProps(props) {
-        const fadil1 = {
+        const currentProps = {
             values: this.props.values,
             width: this.props.width,
             height: this.props.height,
@@ -360,7 +360,7 @@ class TinkoffChart extends React.Component {
             yAxis: this.props.yAxis
         };
 
-        const fadil2 = {
+        const newProps = {
             values: props.values,
             width: props.width,
             height: props.height,
@@ -368,7 +368,7 @@ class TinkoffChart extends React.Component {
             yAxis: props.yAxis
         };
 
-        if (JSON.stringify(fadil1) === JSON.stringify(fadil2)) {
+        if (JSON.stringify(currentProps) === JSON.stringify(newProps)) {
             return;
         }
 
