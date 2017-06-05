@@ -44,9 +44,6 @@ class TinkoffChart extends React.Component {
 
         this.view = {
             padding: 20,
-            height: props.height,
-            width:  props.width,
-
             yAxisWidth: 30,
             xAxisHeight: 60
         };
@@ -58,13 +55,13 @@ class TinkoffChart extends React.Component {
         const bounds = {
             axis: {
                 top:    this.view.padding + 10,
-                bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+                bottom: this.props.height - this.view.xAxisHeight - this.view.padding,
                 right:  this.view.padding + this.view.yAxisWidth
             },
 
             grid: {
                 left:  this.view.padding + this.view.yAxisWidth + 10,
-                right: this.view.width - this.view.padding
+                right: this.props.width - this.view.padding
             }
         };
 
@@ -89,12 +86,12 @@ class TinkoffChart extends React.Component {
     }
 
     getXAxisElement() {
-        const months = this.props.xAxis.values;
+        const months = this.props.xAxis;
 
         const bounds = {
             left:   this.view.padding + this.view.yAxisWidth + 40,
-            right:  this.view.width - this.view.padding,
-            bottom: this.view.height - this.view.padding - this.view.xAxisHeight / 2
+            right:  this.props.width - this.view.padding,
+            bottom: this.props.height - this.view.padding - this.view.xAxisHeight / 2
         };
 
         let scale = LinearScale.create().domain(0, months.length).range(bounds.left, bounds.right);
@@ -121,7 +118,7 @@ class TinkoffChart extends React.Component {
         const bounds = {
             left:   this.state.focus.x,
             top:    this.state.focus.y,
-            bottom: this.view.height - this.view.padding - this.view.xAxisHeight,
+            bottom: this.props.height - this.view.padding - this.view.xAxisHeight,
         };
 
         return (
@@ -137,13 +134,13 @@ class TinkoffChart extends React.Component {
             return;
         }
 
-        let currentPrice = this.state.focus.price.value,
+        let currentPrice = this.state.focus.price.price,
             currentDate  = this.state.focus.price.date,
             previousPrice = null,
             priceDelta    = null;
 
         if (this.state.focus.id > 0) {
-            previousPrice = this.priceLabels[this.state.focus.id - 1].price.value;
+            previousPrice = this.state.points[this.state.focus.id - 1].price.price;
             priceDelta = currentPrice - previousPrice;
         }
 
@@ -185,20 +182,20 @@ class TinkoffChart extends React.Component {
     getFocusDetailsElementStyle() {
         let chartBounds = this.refs.svg.getBoundingClientRect(),
             elementBounds = {
-                x: this.state.focus.x - chartBounds.left + window.scrollX,
-                y: this.state.focus.y - chartBounds.top + window.scrollY,
+                x: this.state.focus.x + chartBounds.left + window.scrollX,
+                y: this.state.focus.y + chartBounds.top + window.scrollY,
                 width: 180,
                 height: 80
             };
 
         const style = {
-            left: elementBounds.x + 20,
-            top: elementBounds.y - 90,
+            left: elementBounds.x + 10,
+            top: elementBounds.y - 100,
             width: 180,
             height: 80
         };
 
-        if (style.left + style.width > this.view.width) {
+        if (style.left + style.width > this.props.width) {
             style.left -= style.width + 20
         }
 
@@ -250,12 +247,12 @@ class TinkoffChart extends React.Component {
     getYearLabel() {
         const bounds = {
             left: this.view.padding + this.view.yAxisWidth + 40,
-            top:  this.view.height - this.view.padding + 10
+            top:  this.props.height - this.view.padding + 10
         };
 
         return (
             <text x={bounds.left} y={bounds.top} className="tinkoff-chart-label tinkoff-chart-year">
-                {this.props.stock.year}
+                {this.props.year}
             </text>
         );
     }
@@ -274,18 +271,26 @@ class TinkoffChart extends React.Component {
         const chartBounds = this.refs.svg.getBoundingClientRect(),
               cursorXPosition = event.pageX - chartBounds.left + window.scrollX;
 
-        const deltas = this.priceLabels.map((priceLabel) => {
-            return Math.abs(cursorXPosition - priceLabel.x);
+        const deltas = this.state.points.map((point) => {
+            return Math.abs(cursorXPosition - point.x);
         });
 
         const minDelta = Math.min.apply(null, deltas);
 
         this.setState({
-            focus: this.priceLabels[deltas.indexOf(minDelta)]
+            focus: this.state.points[deltas.indexOf(minDelta)]
         });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (this.props.animations !== nextProps.animations) {
+            return false;
+        }
+
+        if (this.props.sma !== nextProps.sma) {
+            return true;
+        }
+
         if (!this.state.focus || !nextState.focus) {
             return true;
         }
@@ -297,45 +302,85 @@ class TinkoffChart extends React.Component {
         return true;
     }
 
-    componentDidMount() {
-        const yearStart = new Date(this.props.stock.year, 0, 1),
-              yearEnd   = new Date(this.props.stock.year, 11, 31);
+    buildPriceElements(props) {
+        const yearStart = new Date(props.year, 0, 1),
+              yearEnd   = new Date(props.year, 11, 31);
 
         const bounds = {
             left:   this.view.padding + this.view.yAxisWidth + 40,
-            right:  this.view.width - this.view.padding,
-            bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+            right:  props.width - this.view.padding,
+            bottom: props.height - this.view.xAxisHeight - this.view.padding,
             top:    this.view.padding + 10
         };
 
         const xScale = LinearScale.create().domain(yearStart, yearEnd).range(bounds.left, bounds.right),
-              yScale = LinearScale.create().domain(this.props.yAxis.min, this.props.yAxis.max).range(bounds.bottom, bounds.top);
+              yScale = LinearScale.create().domain(props.yAxis.min, props.yAxis.max).range(bounds.bottom, bounds.top);
 
-        this.priceLabels = this.props.stock.prices.map((price, index) => {
+        const points = props.values.map((value, index) => {
             return {
-                price: price,
+                price: value,
                 id: index,
-                x: xScale(price.date - yearStart),
-                y: yScale(price.value)
+                x: xScale(value.date - yearStart),
+                y: yScale(value.price)
             };
         });
 
-        const points = this.priceLabels.map(({x, y}) => {
-            return {x, y};
+        this.isChartBuilt = false;
+        if (props.animations) {
+            let animationFrameIndex = 0;
+
+            clearInterval(this.animationTimer);
+            this.animationTimer = setInterval(() => {
+                if (points.length === animationFrameIndex) {
+                    this.isChartBuilt = true;
+                    clearInterval(this.animationTimer);
+                    return;
+                }
+
+                this.setState((prevState, props) => {
+                    return {
+                        points: [...prevState.points, points[animationFrameIndex++]]
+                    };
+                });
+            }, CHART_ANIMATION_DURATION / points.length);
+        } else {
+            this.setState({
+                points: points
+            });
+        }
+    }
+
+    componentWillReceiveProps(props) {
+        const fadil1 = {
+            values: this.props.values,
+            width: this.props.width,
+            height: this.props.height,
+            xAxis: this.props.xAxis,
+            yAxis: this.props.yAxis
+        };
+
+        const fadil2 = {
+            values: props.values,
+            width: props.width,
+            height: props.height,
+            xAxis: props.xAxis,
+            yAxis: props.yAxis
+        };
+
+        if (JSON.stringify(fadil1) === JSON.stringify(fadil2)) {
+            return;
+        }
+
+        this.setState({
+            points: [],
+            focus: null
         });
 
-        let animationFrameIndex = 0;
-        this.animationTimer = setInterval(() => {
-            if (points.length === animationFrameIndex) {
-                this.isChartBuilt = true;
-                clearInterval(this.animationTimer);
-                return;
-            }
+        this.buildPriceElements(props);
+    }
 
-            this.setState((prevState) => {
-                points: prevState.points.push(points[animationFrameIndex++]);
-            });
-        }, CHART_ANIMATION_DURATION / points.length);
+    componentDidMount() {
+        this.buildPriceElements(this.props);
     }
 
     componentWillUnmount() {
@@ -343,16 +388,19 @@ class TinkoffChart extends React.Component {
     }
 
     render() {
+        const {width, height} = this.props;
+
         return (
             <div className="tinkoff-chart">
-                <svg width={this.view.width} height={this.view.height} ref="svg" onMouseMove={this.handleMouseMove.bind(this)}>
+                <svg width={width} height={height} ref="svg" onMouseMove={this.handleMouseMove.bind(this)}>
                     {this.getYAxisElement()}
                     {this.getXAxisElement()}
                     {this.getChartElement()}
-                    {this.props.ma && this.getMovingAverageElement()}
                     {this.getFocusElement()}
                     {this.getYearLabel()}
                     {this.getLogo()}
+
+                    {this.props.sma && this.getMovingAverageElement()}
                 </svg>
 
                 {this.getFocusDetailsElement()}

@@ -1,6 +1,6 @@
 {
   "name": "tinkoff-chart",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Yet another chart for Tinkoff Bank as a test task",
   "main": "dist/tinkoff-chart.common.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "build": "npm run build:umd && npm run build:common",
     "example:common": "npm run build:common && gulp examples && NODE_ENV=production webpack --config webpack.example.config.js",
     "example:umd": "npm run build:umd && gulp examples",
-    "example": "npm run example:common && npm run example:umd"
+    "example": "npm run example:common && npm run example:umd",
+    "start": "webpack-dev-server --config webpack.example.config.js --content-base ./examples/common --hot --inline --progress --devtool eval-source-map"
   },
   "repository": {
     "type": "git",
@@ -36,10 +37,11 @@
     "image-webpack-loader": "^3.3.1",
     "less": "^2.7.2",
     "less-loader": "^4.0.4",
+    "react-dom": "^15.5.4",
     "style-loader": "^0.18.1",
     "url-loader": "^0.5.8",
     "webpack": "^2.6.1",
-    "react-dom": "^15.5.4"
+    "webpack-dev-server": "^2.4.5"
   },
   "dependencies": {
     "react": "^15.5.4"

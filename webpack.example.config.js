@@ -9,6 +9,7 @@ module.exports = {
 
     output: {
         path: path.resolve("examples/common/build"),
+        publicPath: "build",
         filename: "[name].min.js",
     },
 
@@ -16,8 +17,16 @@ module.exports = {
         rules: [
             {
                 use: "babel-loader",
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    { loader: "style-loader"},
+                    { loader: "css-loader"  },
+                    { loader: "less-loader" }
+                ]
             },
             {
                 test: /\.(jpe?g|png|gif|svg)$/,

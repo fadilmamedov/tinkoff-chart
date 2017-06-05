@@ -139,6 +139,8 @@ __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -202,9 +204,6 @@ var TinkoffChart = function (_React$Component) {
 
         _this2.view = {
             padding: 20,
-            height: props.height,
-            width: props.width,
-
             yAxisWidth: 30,
             xAxisHeight: 60
         };
@@ -219,13 +218,13 @@ var TinkoffChart = function (_React$Component) {
             var bounds = {
                 axis: {
                     top: this.view.padding + 10,
-                    bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+                    bottom: this.props.height - this.view.xAxisHeight - this.view.padding,
                     right: this.view.padding + this.view.yAxisWidth
                 },
 
                 grid: {
                     left: this.view.padding + this.view.yAxisWidth + 10,
-                    right: this.view.width - this.view.padding
+                    right: this.props.width - this.view.padding
                 }
             };
 
@@ -252,12 +251,12 @@ var TinkoffChart = function (_React$Component) {
     }, {
         key: "getXAxisElement",
         value: function getXAxisElement() {
-            var months = this.props.xAxis.values;
+            var months = this.props.xAxis;
 
             var bounds = {
                 left: this.view.padding + this.view.yAxisWidth + 40,
-                right: this.view.width - this.view.padding,
-                bottom: this.view.height - this.view.padding - this.view.xAxisHeight / 2
+                right: this.props.width - this.view.padding,
+                bottom: this.props.height - this.view.padding - this.view.xAxisHeight / 2
             };
 
             var scale = LinearScale.create().domain(0, months.length).range(bounds.left, bounds.right);
@@ -285,7 +284,7 @@ var TinkoffChart = function (_React$Component) {
             var bounds = {
                 left: this.state.focus.x,
                 top: this.state.focus.y,
-                bottom: this.view.height - this.view.padding - this.view.xAxisHeight
+                bottom: this.props.height - this.view.padding - this.view.xAxisHeight
             };
 
             return _react2.default.createElement(
@@ -302,13 +301,13 @@ var TinkoffChart = function (_React$Component) {
                 return;
             }
 
-            var currentPrice = this.state.focus.price.value,
+            var currentPrice = this.state.focus.price.price,
                 currentDate = this.state.focus.price.date,
                 previousPrice = null,
                 priceDelta = null;
 
             if (this.state.focus.id > 0) {
-                previousPrice = this.priceLabels[this.state.focus.id - 1].price.value;
+                previousPrice = this.state.points[this.state.focus.id - 1].price.price;
                 priceDelta = currentPrice - previousPrice;
             }
 
@@ -361,20 +360,20 @@ var TinkoffChart = function (_React$Component) {
         value: function getFocusDetailsElementStyle() {
             var chartBounds = this.refs.svg.getBoundingClientRect(),
                 elementBounds = {
-                x: this.state.focus.x - chartBounds.left + window.scrollX,
-                y: this.state.focus.y - chartBounds.top + window.scrollY,
+                x: this.state.focus.x + chartBounds.left + window.scrollX,
+                y: this.state.focus.y + chartBounds.top + window.scrollY,
                 width: 180,
                 height: 80
             };
 
             var style = {
-                left: elementBounds.x + 20,
-                top: elementBounds.y - 90,
+                left: elementBounds.x + 10,
+                top: elementBounds.y - 100,
                 width: 180,
                 height: 80
             };
 
-            if (style.left + style.width > this.view.width) {
+            if (style.left + style.width > this.props.width) {
                 style.left -= style.width + 20;
             }
 
@@ -432,13 +431,13 @@ var TinkoffChart = function (_React$Component) {
         value: function getYearLabel() {
             var bounds = {
                 left: this.view.padding + this.view.yAxisWidth + 40,
-                top: this.view.height - this.view.padding + 10
+                top: this.props.height - this.view.padding + 10
             };
 
             return _react2.default.createElement(
                 "text",
                 { x: bounds.left, y: bounds.top, className: "tinkoff-chart-label tinkoff-chart-year" },
-                this.props.stock.year
+                this.props.year
             );
         }
     }, {
@@ -456,19 +455,27 @@ var TinkoffChart = function (_React$Component) {
             var chartBounds = this.refs.svg.getBoundingClientRect(),
                 cursorXPosition = event.pageX - chartBounds.left + window.scrollX;
 
-            var deltas = this.priceLabels.map(function (priceLabel) {
-                return Math.abs(cursorXPosition - priceLabel.x);
+            var deltas = this.state.points.map(function (point) {
+                return Math.abs(cursorXPosition - point.x);
             });
 
             var minDelta = Math.min.apply(null, deltas);
 
             this.setState({
-                focus: this.priceLabels[deltas.indexOf(minDelta)]
+                focus: this.state.points[deltas.indexOf(minDelta)]
             });
         }
     }, {
         key: "shouldComponentUpdate",
         value: function shouldComponentUpdate(nextProps, nextState) {
+            if (this.props.animations !== nextProps.animations) {
+                return false;
+            }
+
+            if (this.props.sma !== nextProps.sma) {
+                return true;
+            }
+
             if (!this.state.focus || !nextState.focus) {
                 return true;
             }
@@ -480,51 +487,90 @@ var TinkoffChart = function (_React$Component) {
             return true;
         }
     }, {
-        key: "componentDidMount",
-        value: function componentDidMount() {
+        key: "buildPriceElements",
+        value: function buildPriceElements(props) {
             var _this3 = this;
 
-            var yearStart = new Date(this.props.stock.year, 0, 1),
-                yearEnd = new Date(this.props.stock.year, 11, 31);
+            var yearStart = new Date(props.year, 0, 1),
+                yearEnd = new Date(props.year, 11, 31);
 
             var bounds = {
                 left: this.view.padding + this.view.yAxisWidth + 40,
-                right: this.view.width - this.view.padding,
-                bottom: this.view.height - this.view.xAxisHeight - this.view.padding,
+                right: props.width - this.view.padding,
+                bottom: props.height - this.view.xAxisHeight - this.view.padding,
                 top: this.view.padding + 10
             };
 
             var xScale = LinearScale.create().domain(yearStart, yearEnd).range(bounds.left, bounds.right),
-                yScale = LinearScale.create().domain(this.props.yAxis.min, this.props.yAxis.max).range(bounds.bottom, bounds.top);
+                yScale = LinearScale.create().domain(props.yAxis.min, props.yAxis.max).range(bounds.bottom, bounds.top);
 
-            this.priceLabels = this.props.stock.prices.map(function (price, index) {
+            var points = props.values.map(function (value, index) {
                 return {
-                    price: price,
+                    price: value,
                     id: index,
-                    x: xScale(price.date - yearStart),
-                    y: yScale(price.value)
+                    x: xScale(value.date - yearStart),
+                    y: yScale(value.price)
                 };
             });
 
-            var points = this.priceLabels.map(function (_ref2) {
-                var x = _ref2.x,
-                    y = _ref2.y;
+            this.isChartBuilt = false;
+            if (props.animations) {
+                var animationFrameIndex = 0;
 
-                return { x: x, y: y };
+                clearInterval(this.animationTimer);
+                this.animationTimer = setInterval(function () {
+                    if (points.length === animationFrameIndex) {
+                        _this3.isChartBuilt = true;
+                        clearInterval(_this3.animationTimer);
+                        return;
+                    }
+
+                    _this3.setState(function (prevState, props) {
+                        return {
+                            points: [].concat(_toConsumableArray(prevState.points), [points[animationFrameIndex++]])
+                        };
+                    });
+                }, CHART_ANIMATION_DURATION / points.length);
+            } else {
+                this.setState({
+                    points: points
+                });
+            }
+        }
+    }, {
+        key: "componentWillReceiveProps",
+        value: function componentWillReceiveProps(props) {
+            var fadil1 = {
+                values: this.props.values,
+                width: this.props.width,
+                height: this.props.height,
+                xAxis: this.props.xAxis,
+                yAxis: this.props.yAxis
+            };
+
+            var fadil2 = {
+                values: props.values,
+                width: props.width,
+                height: props.height,
+                xAxis: props.xAxis,
+                yAxis: props.yAxis
+            };
+
+            if (JSON.stringify(fadil1) === JSON.stringify(fadil2)) {
+                return;
+            }
+
+            this.setState({
+                points: [],
+                focus: null
             });
 
-            var animationFrameIndex = 0;
-            this.animationTimer = setInterval(function () {
-                if (points.length === animationFrameIndex) {
-                    _this3.isChartBuilt = true;
-                    clearInterval(_this3.animationTimer);
-                    return;
-                }
-
-                _this3.setState(function (prevState) {
-                    points: prevState.points.push(points[animationFrameIndex++]);
-                });
-            }, CHART_ANIMATION_DURATION / points.length);
+            this.buildPriceElements(props);
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.buildPriceElements(this.props);
         }
     }, {
         key: "componentWillUnmount",
@@ -534,19 +580,24 @@ var TinkoffChart = function (_React$Component) {
     }, {
         key: "render",
         value: function render() {
+            var _props = this.props,
+                width = _props.width,
+                height = _props.height;
+
+
             return _react2.default.createElement(
                 "div",
                 { className: "tinkoff-chart" },
                 _react2.default.createElement(
                     "svg",
-                    { width: this.view.width, height: this.view.height, ref: "svg", onMouseMove: this.handleMouseMove.bind(this) },
+                    { width: width, height: height, ref: "svg", onMouseMove: this.handleMouseMove.bind(this) },
                     this.getYAxisElement(),
                     this.getXAxisElement(),
                     this.getChartElement(),
-                    this.props.ma && this.getMovingAverageElement(),
                     this.getFocusElement(),
                     this.getYearLabel(),
-                    this.getLogo()
+                    this.getLogo(),
+                    this.props.sma && this.getMovingAverageElement()
                 ),
                 this.getFocusDetailsElement()
             );
